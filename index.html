@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Valentine?</title>
+  <style>
+    :root{
+      --bg1:#f8c0d8; --bg2:#fde7f0; --card:#fff; --text:#1f1f1f; --muted:#6b6b6b;
+      --yes:#e11d48; --yes2:#be123c; --border:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2)); color:var(--text);
+    }
+    .card{
+      width:min(720px,100%);
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:28px 22px;
+      box-shadow:0 12px 40px rgba(0,0,0,.10);
+      text-align:center;
+    }
+    h1{margin:0 0 12px; font-size:clamp(22px,3.2vw,34px); line-height:1.2;}
+    .sub{margin:0 0 18px; color:var(--muted); font-size:15px;}
+    .stage{position:relative; height:120px; margin:10px 0 6px;}
+    .actions{
+      position:absolute; inset:0;
+      display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap;
+    }
+    button{
+      appearance:none; border:1px solid var(--border); background:#fff; color:var(--text);
+      padding:12px 18px; border-radius:12px; font-weight:800; cursor:pointer; min-width:150px;
+      transition:background .15s ease, transform .06s ease;
+      user-select:none;
+      touch-action: manipulation;
+    }
+    button:active{transform:translateY(1px)}
+    .yes{background:var(--yes); border-color:var(--yes); color:#fff;}
+    .yes:hover{background:var(--yes2); border-color:var(--yes2);}
+    .divider{height:1px; background:var(--border); margin:16px 0;}
+    .msg{min-height:70px; display:grid; place-items:center; padding:8px}
+    .msg p{margin:0; font-size:16px; line-height:1.45}
+    .tiny{margin-top:8px; color:var(--muted); font-size:13px}
+    .success{display:none; margin-top:12px}
+    .success h2{margin:0 0 8px; font-size:28px}
+    .gif{
+      width:min(360px,100%); height:200px; margin:12px auto 0; border-radius:14px;
+      border:1px solid var(--border); overflow:hidden; background:#fafafa; display:grid; place-items:center;
+    }
+    .gif img{width:100%; height:100%; object-fit:cover; display:block}
+    .secondary{display:none; margin-top:10px; gap:10px; justify-content:center; flex-wrap:wrap;}
+    .secondary button{min-width:auto; font-weight:700}
+    .stop{background:#111827; color:#fff; border-color:#111827;}
+    .stop:hover{background:#0b1220}
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1><span id="name">Poojamma</span>,<br/> will you be my Valentine? 💖</h1>
+    <p class="sub">This is a totally serious app made by a very serious boyfriend 😌</p>
+
+    <div class="stage" id="stage">
+      <div class="actions" id="actions">
+        <button class="yes" id="yesBtn">YES</button>
+        <button id="noBtn">NO</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="msg" aria-live="polite">
+      <div>
+        <p id="message">Choose wisely 😄</p>
+        <div class="tiny" id="counter"></div>
+      </div>
+    </div>
+
+    <div class="secondary" id="secondary">
+      <button class="stop" id="stopBtn">OK, I Love You! 😭</button>
+    </div>
+
+    <div class="success" id="success">
+      <h2>💖 YAY!!! 💖</h2>
+      <p>Best decision ever 😘</p>
+      <div class="gif">
+        <img alt="celebration gif" src="https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif">
+      </div>
+      <div style="margin-top:10px;font-weight:700;">I love you ❤️</div>
+    </div>
+
+    <div class="tiny" style="margin-top:14px;">
+      (If you press NO 10 times, something extremely dumb happens.)
+    </div>
+  </div>
+
+  <script>
+    const PERSON_NAME = "Poojamma";
+    const MAX_NO = 10;
+
+    const noLines = [
+      "Are you sure? 🥺",
+      "Come on… I’m cute sometimes 😌",
+      "I’ll buy you your favorite snack 😄",
+      "I’ll plan the whole date. Zero effort from you 🤝",
+      "I’ll behave. Mostly. 😇",
+      "You KNOW you want to say yes 😏",
+      "This app has 99.99% uptime, don’t break it 😭",
+      "Last chance before the app gets weird…",
+      "Okay seriously… YES? 💖",
+      "Final NO? Don’t do this to me 😩"
+    ];
+
+    const nameEl = document.getElementById("name");
+    const msgEl = document.getElementById("message");
+    const counterEl = document.getElementById("counter");
+    const successEl = document.getElementById("success");
+    const actionsEl = document.getElementById("actions");
+    const stageEl = document.getElementById("stage");
+
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const secondary = document.getElementById("secondary");
+    const stopBtn = document.getElementById("stopBtn");
+
+    nameEl.textContent = PERSON_NAME;
+
+    let noCount = 0;
+    let dodgeMode = false;
+
+    function setCounter() {
+      counterEl.textContent = noCount ? `NO clicks: ${noCount}/${MAX_NO}` : "";
+    }
+
+    function showSuccess() {
+      actionsEl.style.display = "none";
+      secondary.style.display = "none";
+      msgEl.textContent = "";
+      counterEl.textContent = "";
+      successEl.style.display = "block";
+    }
+
+    function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+    function moveNoButton() {
+      const stageRect = stageEl.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      const maxX = stageRect.width - btnRect.width - 10;
+      const maxY = stageRect.height - btnRect.height - 10;
+
+      // current position (defaults to 0 if not set yet)
+      const currentLeft = parseFloat(noBtn.style.left || "0");
+      const currentTop  = parseFloat(noBtn.style.top  || "0");
+
+      let x = 0, y = 0;
+      for (let i = 0; i < 10; i++) {
+        x = Math.floor(Math.random() * maxX);
+        y = Math.floor(Math.random() * maxY);
+        const dist = Math.hypot(x - currentLeft, y - currentTop);
+        if (dist > 140) break; // jump far enough so it doesn't get clicked
+      }
+
+      noBtn.style.position = "absolute";
+      noBtn.style.left = clamp(x, 6, maxX) + "px";
+      noBtn.style.top  = clamp(y, 6, maxY) + "px";
+    }
+
+    // Enable dodge/block behavior after 10 NO clicks
+    function enableDodgeMode() {
+      dodgeMode = true;
+      secondary.style.display = "flex";
+      moveNoButton();
+    }
+
+    // Move away + block click/press in capture phase
+    function armDodgeAndBlock() {
+      const moveEvents = ["pointerenter", "pointermove", "mousemove", "touchstart"];
+      moveEvents.forEach(evt => {
+        noBtn.addEventListener(evt, (e) => {
+          if (!dodgeMode) return;
+          e.preventDefault();
+          moveNoButton();
+        }, { passive: false });
+      });
+
+      const blockEvents = ["pointerdown", "mousedown", "touchstart", "click"];
+      blockEvents.forEach(evt => {
+        noBtn.addEventListener(evt, (e) => {
+          if (!dodgeMode) return;
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          moveNoButton();
+          return false;
+        }, true); // capture
+      });
+    }
+    armDodgeAndBlock();
+
+    yesBtn.addEventListener("click", showSuccess);
+
+    noBtn.addEventListener("click", () => {
+      noCount++;
+
+      if (noCount <= MAX_NO) {
+        msgEl.textContent = noLines[noCount - 1];
+      }
+
+      setCounter();
+
+      if (noCount >= MAX_NO) {
+        msgEl.textContent = "I can’t find a different girl 😭 so… please say YES?";
+        enableDodgeMode();
+      }
+    });
+
+    // Escape hatch: stop teasing and restore normal buttons
+    stopBtn.addEventListener("click", () => {
+      dodgeMode = false;
+      secondary.style.display = "none";
+      msgEl.textContent = "Okay okay 😄 No more teasing. Now answer properly ❤️";
+
+      // Reset NO back into normal flex layout
+      noBtn.style.position = "";
+      noBtn.style.left = "";
+      noBtn.style.top = "";
+
+      setCounter();
+    });
+
+    setCounter();
+  </script>
+</body>
+</html>
